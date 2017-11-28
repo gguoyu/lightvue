@@ -38,9 +38,9 @@ function insert(parent, elm, ref) {
 	if(parent){
 		if(ref){
 			//参考节点存在则插入到参考节点之前
-			nodeOps.insertBefore(elm, parent, ref)
+			nodeOps.insertBefore(parent, elm, ref)
 		}else{
-			nodeOps.appendChild(elm, parent)
+			nodeOps.appendChild(parent, elm)
 		}
 	}
 }
@@ -74,14 +74,16 @@ function createElm(vnode, parentElm, refElm) {
 
 	if(isDef(tag)){	//非文本节点
 		//先创建节点
-		vnode.elm = nodeOps.createComment(vnode.tag)
+		vnode.elm = nodeOps.createElement(vnode.tag)
 
 		//再创建子节点
 		createChildren(vnode, children)
-
+		//插入节点
+		insert(parentElm, vnode.elm, refElm)
 	}else{	//文本节点
 		vnode.elm = nodeOps.createTextNode(vnode.text)
-
+		//插入节点
+		insert(parentElm, vnode.elm, refElm)
 	}
 }
 
