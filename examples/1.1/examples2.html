@@ -2,9 +2,60 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>vue learn</title>
+    <link rel="stylesheet" href="./example.css" />
 </head>
 <body>
+	<div class="header">
+		<h1>Number plus 1 per second</h1>
+	</div>
+	<div class="vue-test-container">
+		<div id="example"></div>
+	</div>
+	<div class="footer">
+		<p>@copyright 2017</p>
+	</div>
+	<script type="text/javascript" src="../../dist/v1.1.js"></script>>
+	<script type="text/javascript">
+		var c = function(tag, children){
+			if(children){
+				for(var i = 0; i < children.length; i++){
+					var c = children[i]
+					if(typeof c == "string"){
+						children[i] = t(c)
+					}
+				}
+			}
 
+			return new VNode(tag, children, undefined, null)
+		}
+
+		var t = function(text){
+			return new VNode(null, [], text, null)
+		}
+
+		var container = document.getElementById("example")
+		var oldNode = new VNode(container.tagName, [], undefined, container)
+
+		var render = function(newNode){
+			patch(oldNode, newNode)
+			oldNode = newNode
+		}
+
+		var clk = 1
+		var showClk = function(){
+			render(
+				c('div', [
+					c('span', ["clk: " + clk])
+				])
+			)
+		}
+		showClk()
+
+		setInterval(function(){
+			clk++
+			showClk()
+		}, 1000)
+	</script>
 </body>
 </html>
