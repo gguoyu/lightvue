@@ -85,8 +85,84 @@ export function parseHTML(html , options) {
 
 	while(html){
 		last = html
-		if(!lastTag ||!isScriptOrStyle(lastTag)){
+		if(!lastTag || !isScriptOrStyle(lastTag)){
+			let textEnd = html.indexOf('<')
+			if(textEnd === 0){
+				//comment
+				if(comment.test(html)){//move pointer to end of "<!-- xxx -->"
+					const commentEnd = html.indexOf('-->')
 
+					if(commentEnd >= 0){
+						advance(commentEnd + 3)
+						continue
+					}
+				}
+
+				//contidional comment
+				if(conditionalComment.test(html)){	//move pointer to end of "<![if xxx]> xxx <![endif]>"
+					const conditionalEnd = html.indexOf(']>')
+
+					if(conditionalEnd >= 0){
+						advance(conditionalEnd + 2)
+						continue
+					}
+				}
+
+				//doctype
+				const doctypeMatch = html.match(doctype)	//doctypeMatch = []
+				if(doctypeMatch){	//move pointer to end of "<!DOCTYPE xxx>"
+					advance(doctypeMatch[0].length)
+					continue
+				}
+
+				//end of the tag
+				const endTagMatch = html.match(endTag)
+				if(endTagMatch){
+					const curIndex = index
+					advance(endTagMatch[0].length)
+					//handle stack info, callback parent
+					parseEndTag(endTagMatch[1], curIndex, index)
+					continue
+				}
+
+				//start of tag, exp: "<xxx attr='xx'>"
+				const startTagMatch = parseStartTag()	//
+				if(startTagMatch){
+					handleStartTag(startTagMatch)
+					continue
+				}
+
+				//handle text node
+				let text, rest, next
+				if(textEnd >= 0){
+					rest = html.slice(textEnd)
+					while(
+						!endTag.test(rest) && 
+						!startTagOpen.test(rest) && 
+						!comment.test(rest) && 
+						!conditionalComment.test(rest)
+					){
+						next = rest.indexOf('<', 1)
+						if(next < 0){
+							break
+						}
+
+						textEnd += next
+						rest = html.slice(textEnd)
+					}
+					text = html.substring(0, textEnd)
+					advance(textEnd)
+				}
+
+				if(textEnd < 0){
+					text = html
+					html = ''
+				}
+
+				if(options.chars && text){
+					options.chars(text)
+				}
+			}
 		}else{
 			//lastTag is script or style or noscript
 			var stackedTag = lastTag.toLowerCase()
@@ -148,7 +224,48 @@ export function parseHTML(html , options) {
 	}
 
 	function handleStartTag(match){
+		const tagName = match.tagName
+		const unarySlash = match.unarySlash
 
+		const unary = isUnaryTag(tagName) || tagName === 'html' && lastTag === 'head' || !!unarySlash
+
+		const l = match.attrs.length
+		const attrs = new Array(1)
+
+		for(let i = 0; i < l; i++){
+			const args = match.attr[i]
+			//hackish work around FF bug
+			if(IS_REGEX_CAPTURING_BROKEN && args[0].indexOf('""') === -1){
+				if(args[3] === ''){
+					delete args[3]
+				}
+				if(args[4] === ''){
+					delete args[4]
+				}
+				if(args[5] === ''){
+					delete args[5]
+				}
+			}
+
+			const value = args[3] || args[4] || args[5] || ''
+			attrs[i] = {
+				name: args[1],
+				value: decodeAttr(value)
+			}
+		}
+
+		if(!unary){	//if not unary tag, then push to stack
+			stack.push({
+				tag: tagName,
+				lowerCaseTag: tagName.toLowerCase(),
+				attrs: attrs
+			})
+			lastTag = tagName
+		}
+
+		if(options.start){
+			options.start(tagName, attrs, unary, match.start, match.end)
+		}
 	}
 
 	function parseEndTag(tagName, start, end) {
@@ -168,8 +285,27 @@ export function parseHTML(html , options) {
 
 		if(tagName){
 			for(pos = stack.length - 1; pos >= 0; pos--){
-
+				if(stack[pos].lowerCaseTag === lowerCaseTagName){
+					break
+				}
 			}
+		}else{
+			//clear all stack
+			pos = 0
+		}
+
+		if(pos >= 0){
+			//close all tag not closed
+			for(let i = stack.length; i >= pos; i--){
+				if(options.end){
+					options.end(stack[i].tag, start, end)
+				}
+			}
+
+			stack.length = pos
+			lastTag = pos && stack[pos - 1].tag
+		}else{
+
 		}
 	}
 }
