@@ -15,6 +15,8 @@ function decode(html){
 	return decoder.textContent
 }
 
+const isPreTag = (tag) => tag === 'pre'
+
 /**
  * parse html string to AST structure
  * ast = {attrsList, attrsMap, children, parent, tag, type=1}	//non text node
@@ -22,8 +24,15 @@ function decode(html){
  */
 export default function parse(template){
 	const stack = []
-	let root
-	let currentParent
+	let root	//root of ast
+	let currentParent	//parent node of current node
+	let inPre = false
+
+	function endPre(element) {
+		if(isPreTag(element.tag)){
+			inPre = false
+		}
+	}
 
 	parseHTML(template, {
 		start(tag, attrs, unary){
@@ -34,6 +43,10 @@ export default function parse(template){
 				attrsMap: makeAttrsMap(attrs),
 				parent: currentParent,
 				children: []
+			}
+
+			if(isPreTag(element.tag)){
+				inPre = true
 			}
 
 			if(!root){
@@ -47,11 +60,21 @@ export default function parse(template){
 			if(!unary){
 				currentParent = element
 				stack.push(element)
+			}else{
+				endPre(element)
 			}
 		},
 		end(){
+			const element = stack[stack.length - 1]
+			const lastNode = element.children[element.children.length - 1]
+			if(lastNode && lastNode.type === 3 && lastNode.text === ' ' && !inPre){
+				//delete the empty node that are end of child node
+				element.children.pop()
+			}
+
 			stack.length -= 1
 			currentParent = stack[stack.length - 1]
+			endPre(element)
 		},
 		chars(text){
 			if(!currentParent){
@@ -59,6 +82,12 @@ export default function parse(template){
 			}
 
 			const children = currentParent.children
+			//if the texe node has many space and parent node
+			//has other child, then need to create a single space
+			//text node
+			text = inPre || text.trim() ?
+				decode(text) :
+				(children.length ? ' ' : '')
 			if(text){
 				children.push({
 					type: 3,
