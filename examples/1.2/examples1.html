@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+	<meta charset="UTF-8">
+	<title>Vue Learn</title>
+	<link rel="stylesheet" href="./example.css" />
+</head>
+<body>
+<div class="header">
+	<h1>ul渲染</h1>
+</div>
+<div class="vue-test-container">
+	<div id="example"></div>
+</div>
+<div class="footer">
+	<p>@copyright 2017</p>
+</div>
+<script src="../../dist/v1.2.js"></script>
+<script>
+	var compile = function(html){
+	    return generate(parse(html))
+	}
+
+	var container = document.getElementById('example')
+	var oldVnode = new V
+
+	var render = function (newVnode) {
+		patch(oldVnode, newVnode)
+		oldVnode = newVnode
+	}
+
+	render(compile(
+	    `<ul>
+			<li>Item 1</li>
+			<li>Item 2</li>
+			<li>Item 3</li>
+		</ul>`
+	))
+</script>
+</body>
+</html>

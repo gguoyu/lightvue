@@ -18,11 +18,11 @@ const singleAttrValues = [
 	//单引号属性
 	/'([^']*)'+/.source,
 	//属性值，无引号
-	/([^\s"'=<>`]*)+/.source,
+	/([^\s"'=<>`]+)/.source,
 ]
 
 const attribute = new RegExp(
-	'' + singleAttrIdentifier.source +
+	'^\\s*' + singleAttrIdentifier.source +
 	'(?:\\s*(' + singleAttrAssign.source + ')' +
 	'\\s*(?:' + singleAttrValues.join('|') + '))?'
 )
@@ -137,9 +137,9 @@ export function parseHTML(html , options) {
 				if(textEnd >= 0){
 					rest = html.slice(textEnd)
 					while(
-						!endTag.test(rest) && 
-						!startTagOpen.test(rest) && 
-						!comment.test(rest) && 
+						!endTag.test(rest) &&
+						!startTagOpen.test(rest) &&
+						!comment.test(rest) &&
 						!conditionalComment.test(rest)
 					){
 						next = rest.indexOf('<', 1)
@@ -230,7 +230,7 @@ export function parseHTML(html , options) {
 		const unary = isUnaryTag(tagName) || tagName === 'html' && lastTag === 'head' || !!unarySlash
 
 		const l = match.attrs.length
-		const attrs = new Array(1)
+		const attrs = new Array(l)
 
 		for(let i = 0; i < l; i++){
 			const args = match.attr[i]
@@ -296,7 +296,7 @@ export function parseHTML(html , options) {
 
 		if(pos >= 0){
 			//close all tag not closed
-			for(let i = stack.length; i >= pos; i--){
+			for(let i = stack.length - 1; i >= pos; i--){
 				if(options.end){
 					options.end(stack[i].tag, start, end)
 				}
