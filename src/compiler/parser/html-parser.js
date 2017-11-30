@@ -131,37 +131,37 @@ export function parseHTML(html , options) {
 					handleStartTag(startTagMatch)
 					continue
 				}
+			}
 
-				//handle text node
-				let text, rest, next
-				if(textEnd >= 0){
-					rest = html.slice(textEnd)
-					while(
-						!endTag.test(rest) &&
-						!startTagOpen.test(rest) &&
-						!comment.test(rest) &&
-						!conditionalComment.test(rest)
-					){
-						next = rest.indexOf('<', 1)
-						if(next < 0){
-							break
-						}
-
-						textEnd += next
-						rest = html.slice(textEnd)
+			//handle text node
+			let text, rest, next
+			if(textEnd >= 0){
+				rest = html.slice(textEnd)
+				while(
+					!endTag.test(rest) &&
+					!startTagOpen.test(rest) &&
+					!comment.test(rest) &&
+					!conditionalComment.test(rest)
+				){
+					next = rest.indexOf('<', 1)
+					if(next < 0){
+						break
 					}
-					text = html.substring(0, textEnd)
-					advance(textEnd)
-				}
 
-				if(textEnd < 0){
-					text = html
-					html = ''
+					textEnd += next
+					rest = html.slice(textEnd)
 				}
+				text = html.substring(0, textEnd)
+				advance(textEnd)
+			}
 
-				if(options.chars && text){
-					options.chars(text)
-				}
+			if(textEnd < 0){
+				text = html
+				html = ''
+			}
+
+			if(options.chars && text){
+				options.chars(text)
 			}
 		}else{
 			//lastTag is script or style or noscript

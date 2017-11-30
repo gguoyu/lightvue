@@ -23,7 +23,7 @@
 	}
 
 	var container = document.getElementById('example')
-	var oldVnode = new V
+	var oldVnode = new VNode(container.tagName, [], undefined, container)
 
 	var render = function (newVnode) {
 		patch(oldVnode, newVnode)
@@ -32,9 +32,9 @@
 
 	render(compile(
 	    `<ul>
-			<li>Item 1</li>
-			<li>Item 2</li>
-			<li>Item 3</li>
+	    	<li>Item 1</li>
+	    	<li>Item 2</li>
+	    	<li>Item 3</li>
 		</ul>`
 	))
 </script>
