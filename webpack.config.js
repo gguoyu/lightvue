@@ -6,7 +6,7 @@ var path = require('path')
 module.exports = {
 	entry: './src/entries/index.js',
 	output: {
-		filename: './dist/v1.2.js'
+		filename: './dist/v1.2.1.js'
 	},
 	module: {
 		rules: [

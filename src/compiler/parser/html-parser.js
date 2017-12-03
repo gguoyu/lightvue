@@ -9,6 +9,24 @@ export const isUnaryTag = makeMap(
 	true
 )
 
+//Elements that you can, intentionally, leave open
+//(and which close themselves)
+export const canBeLeftOpenTag = makeMap(
+	'colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr,source',
+	true
+)
+
+//HTML5 tags https://html.spec.whatwg.org/multipage/indices.html#elements-3
+//Phrasing Content https://html.spec.whatwg.org/multipage/dom.html#phrasing-content
+export const isNonPhrasingTag = makeMap(
+	'address,article,aside,base,blockquote,body,caption,col,colgroup,' +
+	'dd,details,dialog,div,dl,dt,fieldset,figcaption,figure,footer,form,' +
+	'h1,h2,h3,h4,h5,h6,head,header,hgroup,hr,html,legend,li,menuitem,meta,' +
+	'optgroup,option,param,rp,rt,source,style,summary,tbody,td,tfoot,th,' +
+	'thead,title,tr,track',
+	true
+)
+
 //单个属性正则标识
 const singleAttrIdentifier = /([^\s"'<>/=]+)/
 const singleAttrAssign = /(?:=)/
@@ -227,6 +245,22 @@ export function parseHTML(html , options) {
 		const tagName = match.tagName
 		const unarySlash = match.unarySlash
 
+		if(lastTag === 'p' && isNonPhrasingTag(tagName)){
+			//tag "p" can not be embed some tag, like div
+			//so if found the situtation, must be end before
+			//<p><span></span><div></div></p> =>
+			//browser render:
+			//<p><span></span></p><div></div><p></p>
+			//so we need end of p first if we found can not 
+			//embed tag and parse </p> to <p></p>
+			parseEndTag(lastTag)
+		}
+
+		if(canBeLeftOpenTag(tagName) && lastTag === tagName){
+			//
+			parseEndTag(tagName)
+		}
+
 		const unary = isUnaryTag(tagName) || tagName === 'html' && lastTag === 'head' || !!unarySlash
 
 		const l = match.attrs.length
@@ -304,8 +338,22 @@ export function parseHTML(html , options) {
 
 			stack.length = pos
 			lastTag = pos && stack[pos - 1].tag
+		}else if(lowerCaseTagName === 'br'){
+			//single </br> parse to <br>
+			if(options.start){
+				options.start(tagName, [], true, start, end)
+			}
+		}else if(lowerCaseTagName === 'p'){
+			//single </p> parset to <p></p>
+			if(options.start){
+				options.start(tagName, [], false, start, end)
+			}
+			if(options.end){
+				options.end(tagName, start, end)
+			}
 		}else{
-
+			//if we can not found matched start tag, then we
+			//ignore end tag
 		}
 	}
 }
