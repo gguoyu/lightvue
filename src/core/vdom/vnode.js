@@ -21,3 +21,39 @@ export default class VNode {
 		this.elm = elm
 	}
 }
+
+/**
+ * @description 创建一个空节点
+ *
+ * @returns {VNode}
+ */
+export const createEmptyVNode = () => {
+	const node = new VNode()
+	node.text = ''
+
+	return node
+}
+
+/**
+ * @description 创建元素节点
+ *
+ * @param tag
+ * @param children
+ */
+export function createElementVNode(tag, children) {
+	if(!tag){
+		return createEmptyVNode()
+	}
+
+	return new VNode(tag, children, undefined, undefined)
+}
+
+/**
+ * @description 创建文本节点
+ *
+ * @param val
+ * @returns {VNode}
+ */
+export function createTextVNode(val) {
+	return new VNode(undefined, undefined, String(val))
+}

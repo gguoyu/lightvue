@@ -219,10 +219,15 @@ function updateChildren(parentElm, oldCh, newCh, removeOnly) {
 export default function patch(oldVnode, newVnode) {
 	let isInitialPatch = false
 
-	if(sameVnode(oldVnode, newVnode)){
+	const isRealElement = isDef(oldVnode.nodeType)
+	if(!isRealElement && sameVnode(oldVnode, newVnode)){
 		//两个vnode节点的根节点一致
 		patchVnode(oldVnode, newVnode)
 	}else{
+		if(isRealElement){
+			oldVnode = emptyNodeAt(oldVnode)
+		}
+
 		//根节点不同
 		//拿到原dom的容器，将新节点的dom生成进去
 		//然后移除原节点
