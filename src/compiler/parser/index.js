@@ -1,4 +1,6 @@
 import {parseHTML} from './html-parser'
+import {parseText} from './text-parser'
+import {warn} from 'core/util/debug'
 
 function makeAttrsMap(attrs){
 	const map = {}
@@ -22,7 +24,7 @@ const isPreTag = (tag) => tag === 'pre'
  * ast = {attrsList, attrsMap, children, parent, tag, type=1}	//non text node
  * ast = {text, type=3} //text node
  */
-export default function parse(template){
+export function parse(template){
 	const stack = []
 	let root	//root of ast
 	let currentParent	//parent node of current node
@@ -35,6 +37,7 @@ export default function parse(template){
 	}
 
 	parseHTML(template, {
+		warn,
 		start(tag, attrs, unary){
 			const element = {
 				type: 1,
@@ -51,6 +54,8 @@ export default function parse(template){
 
 			if(!root){
 				root = element
+			}else if(!stack.length){	//only one root，otherwise warn
+				warn(`Component template should contain exactly one root element.`)
 			}
 
 			if(currentParent){
@@ -78,6 +83,10 @@ export default function parse(template){
 		},
 		chars(text){
 			if(!currentParent){
+				if(text === template){	//template can not be pure text node
+					warn('Compnent template requires a root element, rather than just text.')
+				}
+
 				return
 			}
 
@@ -88,11 +97,23 @@ export default function parse(template){
 			text = inPre || text.trim() ?
 				decode(text) :
 				(children.length ? ' ' : '')
+
 			if(text){
-				children.push({
-					type: 3,
-					text
-				})
+				let expression
+
+				if(text !== ' ' && (expression = parseText(text))){	//expression node
+					children.push({
+						type: 2,
+						expression,
+						text
+					})
+				}else{
+					children.push({
+						type: 3,
+						text
+					})
+				}
+
 			}
 		}
 	})

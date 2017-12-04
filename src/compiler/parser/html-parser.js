@@ -203,6 +203,11 @@ export function parseHTML(html , options) {
 		if(html === last){
 			//if the pointer still no moving wheather handle up.then the rest string as text node, break circle
 			options.chars && options.chars(html)
+
+			if(!stack.length && options.warn){	//if there is element at top stack, means not closed. then warn
+				options.warn (`Mal-formatted tag at end of template: ${html}`)
+			}
+
 			break
 		}
 	}
@@ -251,7 +256,7 @@ export function parseHTML(html , options) {
 			//<p><span></span><div></div></p> =>
 			//browser render:
 			//<p><span></span></p><div></div><p></p>
-			//so we need end of p first if we found can not 
+			//so we need end of p first if we found can not
 			//embed tag and parse </p> to <p></p>
 			parseEndTag(lastTag)
 		}
@@ -331,6 +336,10 @@ export function parseHTML(html , options) {
 		if(pos >= 0){
 			//close all tag not closed
 			for(let i = stack.length - 1; i >= pos; i--){
+				if((i > pos || !tagName) && options.warn){	//has not closed tag, then warn
+					options.warn(`tag <${stack[i].tag}> has no matching end tag.`)
+				}
+
 				if(options.end){
 					options.end(stack[i].tag, start, end)
 				}

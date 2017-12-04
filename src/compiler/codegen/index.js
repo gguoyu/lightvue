@@ -1,35 +1,68 @@
-import parse from 'compiler/parser/index'
+import parse from 'compiler/index'
 import VNode from 'core/vdom/vnode'
 
+/**
+ * @description 生成函数
+ *
+ * <div>
+ *     <span>abc{{a}}xxx{{b}}def</span>
+ * </div>
+ *
+ * this == Vue Instance == vm
+ *
+ * generate to:
+ *
+ * function render(){
+ * 	with(this){
+ * 		return _c("div", [
+ * 			_c("span", [
+ * 				_v("abc" + _s(a) + "xxx" + _s(b) + "def")
+ * 			])
+ * 		])
+ * 	}
+ * }
+ *
+ * @param ast
+ * @returns {{render: string}}
+ */
 export default function generate(ast) {
-	return genElement(ast)
+	const code = ast ? genElement(ast) : '_c("div")'
+
+	return {
+		render: ("with(this){return " + code + "}")
+	}
 }
 
 function genElement(el){
-	let vnode = null
+	let code
 
-	if(el){
-		if(el.type == 1){
-			//non text node
-			vnode = new VNode(el.tag, getChildren(el), undefined, null)
-		}else if(el.type == 3){
-			//text node
-			vnode = new VNode(null, [], el.text, null)
-		}
-	}
+	const children = getChildren(el)
 
-	return vnode
+	code = `_c('${el.tag}' ${children ? `,${children}` : ''
+	})`
+
+	return code
 }
 
 function getChildren(el) {
 	const children = el.children
-	const childrenVode = []
 
 	if(children.length){
-		children.forEach((c) => {
-			childrenVode.push(genElement(c))
-		})
+		return `[${(children.map(genNode).join(','))}]`
 	}
+}
 
-	return childrenVode
+function  genNode(node) {
+	if(node.type === 1){
+		return genElement(node)
+	}else{
+		return genText(node)
+	}
+}
+
+function genText(text) {
+	return `_v(${text.type === 2
+		? text.expression	//no need for () because already wrapped in _s()
+		: JSON.stringify(text.text)
+	})`
 }
