@@ -1,7 +1,7 @@
 /**
  * Created by birdguo on 2017/12/4.
  */
-const defaultTagRE = /\{\}((?:.|\n)+?)\{\}/g
+const defaultTagRE = /\{\{((?:.|\n)+?)\}\}/g
 
 /**
  * @description parse文本为tokens

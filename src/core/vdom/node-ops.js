@@ -33,7 +33,7 @@ export function nextSibling(node) {
 }
 
 export function tagName(node) {
-    return node.tageName
+    return node.tagName
 }
 
 export function setTextContent(node, text) {

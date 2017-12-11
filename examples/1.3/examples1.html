@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+	<meta charset="UTF-8">
+	<title>Vue Learn</title>
+	<link rel="stylesheet" href="./example.css" />
+</head>
+<body>
+<div class="header">
+	<h1>ul渲染</h1>
+</div>
+<div class="vue-test-container">
+	<div id="example"></div>
+</div>
+<div class="footer">
+	<p>@copyright 2017</p>
+</div>
+<script src="../../dist/v1.3.js"></script>
+<script>
+	var vm = new Vue({
+		data: {
+		    item1: 'Item 1',
+			item2: 'Item 2',
+			item3: 'Item 3',
+		},
+		template:
+		`<ul>
+			<li>{{item1}}</li>
+			<li>{{item2}}</li>
+			<li>{{item3}}</li>
+		</ul>`
+	})
+
+	vm.$mount('example')
+</script>
+</body>
+</html>

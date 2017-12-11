@@ -17,6 +17,11 @@ function sameVnode(vnode1, vnode2){
 	return vnode1.tag === vnode2.tag
 }
 
+//将dom对象转换为VNode对象
+function emptyNodeAt(elm) {
+	return new VNode(nodeOps.tagName(elm).toLowerCase(), [], undefined, elm)
+}
+
 //移除节点
 function removeNode(el){
 	const parent = nodeOps.parentNode(el)

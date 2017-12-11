@@ -25,7 +25,7 @@ import VNode from 'core/vdom/vnode'
  * @param ast
  * @returns {{render: string}}
  */
-export default function generate(ast) {
+export function generate(ast) {
 	const code = ast ? genElement(ast) : '_c("div")'
 
 	return {
